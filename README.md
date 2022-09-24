@@ -29,5 +29,5 @@ password      VARCHAR(150)   NN
 created_at    TIMESTAMP      NN CURRENT_TIMESTAMP
 
 
-These examples were created for educational purposes and may have security holes. 
+These examples were created for educational purposes and may have security breaches. 
 Unless you are sure what you are doing, it is recommended not to use it in production.
