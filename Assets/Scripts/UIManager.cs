@@ -24,7 +24,6 @@ public class UIManager : MonoBehaviour
         DataManager.instance.LoadAllData();
         type = "LoadAllData";
         InvokeRepeating("UpdateResult", 0f, 0.2f);
-
     }
 
     public void LoadPlayerData()
@@ -74,14 +73,13 @@ public class UIManager : MonoBehaviour
                             "ID: " + playerObj.players[i].id
                             + ", Name: " + playerObj.players[i].name
                             + ", Email: " + playerObj.players[i].email
-                            + ", Password: " + playerObj.players[i].password;
+                            + ", Password: " + playerObj.players[i].password + "\n";
                     }
                 }
                 else
                 {
                     result.text = DataManager.instance.json;
-                }
-                
+                }                
             }
             else if(type == "Authenticate")
             {

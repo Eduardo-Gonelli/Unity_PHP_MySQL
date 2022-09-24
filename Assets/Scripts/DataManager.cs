@@ -8,7 +8,8 @@ using System.Text;
 
 /// <summary>
 /// @Author: https://github.com/Eduardo-Gonelli/
-/// The examples used below are for educational purposes. Do not use in production.
+/// The examples used below are for educational purposes.
+/// Unless you're sure what you're doing, don't use it in production.
 /// The codes below make a call to a PHP services server. 
 /// PHP services access a MySQL database and return data in JSON format.
 /// A player's id, name and email are used as an example.
@@ -70,7 +71,7 @@ public class DataManager : MonoBehaviour
         form.AddField("email", email);
 
         // transform the password string in hash sha256
-        // see GetHash function on line 107
+        // see GetHash function on line 108
         using (SHA256 sha256Hash = SHA256.Create())
         {
             string hash = GetHash(sha256Hash, password);
@@ -82,8 +83,7 @@ public class DataManager : MonoBehaviour
     }
 
     IEnumerator LoadData(WWWForm form)
-    {        
-        
+    {                
         using(UnityWebRequest www = UnityWebRequest.Post(urlService, form))
         {
             www.certificateHandler = new ByPassHTTPSCertificate();
@@ -95,11 +95,9 @@ public class DataManager : MonoBehaviour
             else
             {
                 json = www.downloadHandler.text;
-                dataReady = true;
-                //print(json);                
+                dataReady = true;                
             }
         }
-        
     }
 
     // create a string hash from a string
