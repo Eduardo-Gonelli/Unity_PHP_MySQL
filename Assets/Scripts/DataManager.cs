@@ -21,7 +21,7 @@ public class DataManager : MonoBehaviour
     public string json;
     public bool dataReady;
     // use your php service here
-    string urlService = "http://localhost/senac_aulas/senac_aulas_exemplos/grad_gsd/ex_mysql_php/model/unity_service.php";
+    string urlService = "http://localhost/gsd/unity_mysql/model/unity_service.php";
     
     void Awake()
     {
@@ -118,8 +118,8 @@ public class DataManager : MonoBehaviour
         {
             sBuilder.Append(data[i].ToString("x2"));
         }
-
         // Return the hexadecimal string.
         return sBuilder.ToString();
+        
     }
 }
