@@ -1,13 +1,14 @@
 // to work with JSON, classes and variables need to be public or serializable.
 
 // this is the player data represented as a common class.
+using System.Collections.Generic;
+
 [System.Serializable]
 public class PlayerData
 {
     public string id;
     public string name;
-    public string email;
-    public string password;
+    public string email;    
 }
 
 // as the json format used in this example has several players,
@@ -16,7 +17,7 @@ public class PlayerData
 [System.Serializable]
 public class PlayerRootObject
 {
-    public PlayerData[] players;
+    public List<PlayerData> players;
 }
 
 // json format used as example

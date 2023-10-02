@@ -1,5 +1,8 @@
 using UnityEngine;
 using TMPro;
+using UnityEngine.SceneManagement;
+using Unity.VisualScripting.Dependencies.NCalc;
+using UnityEngine.UI;
 
 /// <summary>
 /// @Author: https://github.com/Eduardo-Gonelli/
@@ -14,29 +17,35 @@ using TMPro;
 public class UIManager : MonoBehaviour
 {
     public TMP_InputField result;
-    public TMP_InputField email;
-    public TMP_InputField password;
+    public TMP_InputField score;
+    public Button loadScoresButton;
+    public Button saveScoreButton;
     private bool dataReady = false;
     private string type;
 
-    public void LoadAllData()
+    public void LoadScores()
     {
-        DataManager.instance.LoadAllData();
-        type = "LoadAllData";
+        DisableButtons();
+        type = "LoadScores1";
+        DataManager.instance.CheckToken();        
+        InvokeRepeating("UpdateResult", 0f, 0.2f);
+        Debug.Log("LoadScores");        
+    }
+
+    public void LoadScores2()
+    {
+        dataReady = false;
+        type = "LoadScores2";
+        DataManager.instance.LoadScores();
         InvokeRepeating("UpdateResult", 0f, 0.2f);
     }
 
-    public void LoadPlayerData()
+    public void SaveScore()
     {
-        DataManager.instance.LoadPlayer(email.text);
-        type = "LoadPlayerData";
-        InvokeRepeating("UpdateResult", 0f, 0.2f);
-    }
-
-    public void AuthenticatePlayer()
-    {
-        DataManager.instance.AuthenticatePlayer(email.text, password.text);
-        type = "Authenticate";
+        DisableButtons();
+        dataReady = false;
+        type = "SaveScore";
+        DataManager.instance.SaveScore(score.text);
         InvokeRepeating("UpdateResult", 0f, 0.2f);
     }
 
@@ -47,44 +56,63 @@ public class UIManager : MonoBehaviour
         if (dataReady)
         {
             CancelInvoke();
-            if(type == "LoadAllData")
+            if(type == "LoadScores1")
             {
-                PlayerRootObject playerObj = JsonUtility.FromJson<PlayerRootObject>("{\"players\":" + DataManager.instance.json + "}");
-                result.text = "";
-                for (int i = 0; i < playerObj.players.Length; i++)
+                string json = DataManager.instance.json;
+                ErrorResponse errorResponses = JsonUtility.FromJson<ErrorResponse>(json);
+                if (!string.IsNullOrEmpty(errorResponses.error))
                 {
-                    result.text +=
-                        "ID: " + playerObj.players[i].id
-                        + ", Name: " + playerObj.players[i].name
-                        + ", Email: " + playerObj.players[i].email
-                        + ", Password: " + playerObj.players[i].password
-                        + "\n";
-                }
-            }
-            else if (type == "LoadPlayerData")
-            {                
-                result.text = "";
-                if(DataManager.instance.json != "Player not found!")
-                {
-                    PlayerRootObject playerObj = JsonUtility.FromJson<PlayerRootObject>("{\"players\":" + DataManager.instance.json + "}");
-                    for (int i = 0; i < playerObj.players.Length; i++)
-                    {
-                        result.text +=
-                            "ID: " + playerObj.players[i].id
-                            + ", Name: " + playerObj.players[i].name
-                            + ", Email: " + playerObj.players[i].email
-                            + ", Password: " + playerObj.players[i].password + "\n";
-                    }
+                    result.text = errorResponses.error + "\nRetornando para a tela de login!";   
+                    Invoke(nameof(LoadLoginScene), 2f);
+                    EnableButtons();
                 }
                 else
                 {
-                    result.text = DataManager.instance.json;
-                }                
+                    LoadScores2();
+                }
             }
-            else if(type == "Authenticate")
+            else if(type == "LoadScores2")
             {
-                result.text = DataManager.instance.json;
+                ScoreRoot scores = JsonUtility.FromJson<ScoreRoot>("{\"players\":" + DataManager.instance.json + "}");
+                result.text = "";
+                foreach (ScoreData score in scores.players)
+                {
+                    result.text += score.name + ": " + score.score + "\n";
+                }
+                EnableButtons();
+            }
+            else if (type == "SaveScore")
+            {
+                string json = DataManager.instance.json;
+                ErrorResponse errorResponses = JsonUtility.FromJson<ErrorResponse>(json);
+                if (!string.IsNullOrEmpty(errorResponses.error))
+                {
+                    result.text = errorResponses.error + "\nRetornando para a tela de login!";
+                    Invoke(nameof(LoadLoginScene), 2f);
+                    EnableButtons();
+                }
+                else
+                {
+                    LoadScores2();
+                }                               
             }
         }
+    }
+
+    private void LoadLoginScene()
+    {
+        SceneManager.LoadScene("Login");
+    }
+
+    public void DisableButtons()
+    {
+        saveScoreButton.interactable = false;
+        loadScoresButton.interactable = false;
+    }
+
+    public void EnableButtons()
+    {
+        saveScoreButton.interactable = true;
+        loadScoresButton.interactable = true;
     }
 }

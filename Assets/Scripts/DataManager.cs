@@ -4,12 +4,12 @@ using UnityEngine.Networking;
 using UnityEngine.SceneManagement;
 using System.Security.Cryptography;
 using System.Text;
-
+using System;
 
 /// <summary>
 /// @Author: https://github.com/Eduardo-Gonelli/
 /// The examples used below are for educational purposes.
-/// Unless you're sure what you're doing, don't use it in production.
+/// Unless you're sure what you're doing, do not use it in production.
 /// The codes below make a call to a PHP services server. 
 /// PHP services access a MySQL database and return data in JSON format.
 /// A player's id, name and email are used as an example.
@@ -20,8 +20,9 @@ public class DataManager : MonoBehaviour
     public static DataManager instance { get; private set; }
     public string json;
     public bool dataReady;
+    private string token;
     // use your php service here
-    string urlService = "http://localhost/gsd/unity_mysql/model/unity_service.php";
+    string urlService = "http://localhost/senac_aulas/senac_aulas_exemplos/gsd2023/php_mysql/";
     
     void Awake()
     {
@@ -39,52 +40,87 @@ public class DataManager : MonoBehaviour
 
     private void Start()
     {
-        //Tests
-        //LoadAllData();
-        //LoadPlayer("edd@gmail.com");
-        //AuthenticatePlayer("edu@gmail.com", "123456");
-        SceneManager.LoadScene("Main");
+        // verifica se está logado com um token no playerprefs
+        // se estiver, carrega a cena main
+        
+        if (!PlayerPrefs.HasKey("token"))
+        {
+            SceneManager.LoadScene("Login");
+        }
+        else
+        {
+            SceneManager.LoadScene("Main");
+        }                
     }
 
-    public void LoadAllData()
-    {
-        dataReady = false;
-        WWWForm form = new WWWForm();
-        form.AddField("type", "LoadAllData");
-        StartCoroutine(LoadData(form));
-    }
 
-    public void LoadPlayer(string email)
-    {
-        dataReady = false;
-        WWWForm form = new WWWForm();
-        form.AddField("type", "LoadPlayer");
-        form.AddField("email", email);
-        StartCoroutine(LoadData(form));
-    }
 
+    // autentica o player e carrega os dados dele
     public void AuthenticatePlayer(string email, string password)
     {
         dataReady = false;
-        WWWForm form = new WWWForm();
-        form.AddField("type", "Authenticate");
+        WWWForm form = new WWWForm();        
+        token = MD5Hash(email + Guid.NewGuid().ToString());
+        PlayerPrefs.SetString("token", token);
+        string url = urlService + "?action=api_login";        
+        form.AddField("token", token);
         form.AddField("email", email);
+        form.AddField("password", password);
 
-        // transform the password string in hash sha256
-        // see GetHash function on line 108
-        using (SHA256 sha256Hash = SHA256.Create())
-        {
-            string hash = GetHash(sha256Hash, password);
-            password = hash;
-        }
-
-        form.AddField("password", password);        
-        StartCoroutine(LoadData(form));
+        StartCoroutine(LoadData(form, url));
     }
 
-    IEnumerator LoadData(WWWForm form)
-    {                
-        using(UnityWebRequest www = UnityWebRequest.Post(urlService, form))
+    // verifica se o token está válido
+    public void CheckToken()
+    {
+        dataReady = false;
+        WWWForm form = new WWWForm();
+        form.AddField("token", PlayerPrefs.GetString("token"));
+        form.AddField("jogador_id", PlayerPrefs.GetString("jogador_id"));
+        string url = urlService + "?action=api_check_token";
+        StartCoroutine(LoadData(form, url));
+    }
+
+    // carrega todas as pontuacoes
+    public void LoadScores()
+    {
+        dataReady = false;
+        WWWForm form = new WWWForm();
+        form.AddField("jogador_id", PlayerPrefs.GetString("jogador_id"));
+        form.AddField("token", PlayerPrefs.GetString("token"));
+        string url = urlService + "?action=api_get_score";
+        StartCoroutine(LoadData(form, url));
+    }
+
+    public void SaveScore(string score)
+    {
+        dataReady = false;
+        WWWForm form = new WWWForm();
+        form.AddField("jogador_id", PlayerPrefs.GetString("jogador_id"));
+        form.AddField("score", score);
+        form.AddField("token", PlayerPrefs.GetString("token"));
+        string url = urlService + "?action=api_save_score";
+        StartCoroutine(LoadData(form, url));
+    }
+
+    // gera um hash no padrão md5 e retorna a string
+    private string MD5Hash(string v)
+    {        
+        MD5 md5 = MD5.Create();
+        byte[] inputBytes = Encoding.ASCII.GetBytes(v);
+        byte[] hashBytes = md5.ComputeHash(inputBytes);
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < hashBytes.Length; i++)
+        {
+            sb.Append(hashBytes[i].ToString("X2"));
+        }
+        return sb.ToString();
+    }
+
+    // função genérica para carregar dados
+    IEnumerator LoadData(WWWForm form, string url)
+    {           
+        using(UnityWebRequest www = UnityWebRequest.Post(url, form))
         {
             www.certificateHandler = new ByPassHTTPSCertificate();
             yield return www.SendWebRequest();
@@ -94,32 +130,9 @@ public class DataManager : MonoBehaviour
             }
             else
             {
-                json = www.downloadHandler.text;
+                json = Encoding.UTF8.GetString(www.downloadHandler.data);                
                 dataReady = true;                
             }
         }
-    }
-
-    // create a string hash from a string
-    // from https://learn.microsoft.com/pt-br/dotnet/api/system.security.cryptography.hashalgorithm.computehash?view=net-6.0
-    private static string GetHash(HashAlgorithm hashAlgorithm, string input)
-    {
-
-        // Convert the input string to a byte array and compute the hash.
-        byte[] data = hashAlgorithm.ComputeHash(Encoding.UTF8.GetBytes(input));
-
-        // Create a new Stringbuilder to collect the bytes
-        // and create a string.
-        var sBuilder = new StringBuilder();
-
-        // Loop through each byte of the hashed data
-        // and format each one as a hexadecimal string.
-        for (int i = 0; i < data.Length; i++)
-        {
-            sBuilder.Append(data[i].ToString("x2"));
-        }
-        // Return the hexadecimal string.
-        return sBuilder.ToString();
-        
     }
 }
