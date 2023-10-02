@@ -115,4 +115,11 @@ public class UIManager : MonoBehaviour
         saveScoreButton.interactable = true;
         loadScoresButton.interactable = true;
     }
+
+    public void LogOut()
+    {
+        PlayerPrefs.DeleteKey("token");
+        PlayerPrefs.DeleteKey("jogador_id");
+        SceneManager.LoadScene("Login");
+    }
 }

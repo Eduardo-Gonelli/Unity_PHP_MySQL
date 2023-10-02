@@ -22,7 +22,7 @@ public class DataManager : MonoBehaviour
     public bool dataReady;
     private string token;
     // use your php service here
-    string urlService = "http://localhost/senac_aulas/senac_aulas_exemplos/gsd2023/php_mysql/";
+    string urlService = "http://localhost/senac_aulas/gsd2023/php_mysql/";
     
     void Awake()
     {
