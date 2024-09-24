@@ -72,7 +72,7 @@ public class UIManager : MonoBehaviour
                 }
             }
             else if(type == "LoadScores2")
-            {
+            {                
                 ScoreRoot scores = JsonUtility.FromJson<ScoreRoot>("{\"players\":" + DataManager.instance.json + "}");
                 result.text = "";
                 foreach (ScoreData score in scores.players)
