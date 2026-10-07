@@ -22,7 +22,7 @@ public class DataManager : MonoBehaviour
     public bool dataReady;
     private string token;
     // use your php service here
-    string urlService = "http://localhost/senac/a8_unity_php/";
+    string urlService = "http://localhost/gsd_2026_a7/";
     
     void Awake()
     {
